@@ -17,7 +17,7 @@ Little Lemon is a restaurant reservation and menu management web app built using
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone [<your-repo-url>](https://github.com/ibrahimsaber1/littlelemon.git)
 cd littlelemon
 
 # Create and activate virtual environment
