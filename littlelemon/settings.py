@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     # The settings for app updated for the Graded assessment
     'rest_framework',
     'debug_toolbar',
+    'crudapis',
     
     'restaurant',
     'booklist.apps.BooklistConfig',
