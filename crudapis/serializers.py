@@ -20,3 +20,17 @@ class MenuItemModelSerializer(serializers.ModelSerializer):
         
     def calculate_tax(self, product:MenuItem):
         return product.price * Decimal(1.1)
+    
+
+# 2.2
+class MenuItemSerializer(serializers.ModelSerializer):
+    stock = serializers.IntegerField(source='inventory')
+    price_after_tax = serializers.SerializerMethodField(method_name = 'calculate_tax')
+    # category = CategorySerializer()
+    class Meta:
+        model = MenuItem
+        fields = ['id','title','price','stock', 'price_after_tax','category']
+        depth = 1 # this will include all the data related to any model with the depth of  so it will take the data of the directlly relarted models
+        
+    def calculate_tax(self, product:MenuItem):
+        return product.price * Decimal(1.1)
