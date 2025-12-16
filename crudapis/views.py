@@ -1,6 +1,6 @@
 from rest_framework import generics
 from rest_framework.views import APIView
-from .serializers import menuItemSerializers , MenuItemModelSerializer, CategorySerializer
+from .serializers import menuItemSerializers , MenuItemModelSerializer, MenuItemModelSerializerCreate ,CategorySerializer
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
@@ -16,7 +16,7 @@ class MenuItemView(generics.ListCreateAPIView):
 
 class MenuItemViewPk(generics.RetrieveUpdateDestroyAPIView):
     queryset = MenuItem.objects.all()
-    serializer_class = menuItemSerializers
+    serializer_class = MenuItemModelSerializer
 
 # Create your views here.
 
@@ -31,30 +31,47 @@ def menu_items(request):
             items = items.filter(category__title=category_name)
         if to_price:
             items = items.filter(price__lte=to_price)
-        serialized_item = menuItemSerializers(items, many=True)
+        serialized_item = MenuItemModelSerializer(items, many=True)
         return Response(serialized_item.data)
     elif request.method=='POST':
-        serialized_item = menuItemSerializers(data=request.data)
+        serialized_item = MenuItemModelSerializer(data=request.data)
         serialized_item.is_valid(raise_exception=True)
         serialized_item.save()
         return Response(serialized_item.validated_data,status.HTTP_201_CREATED)
 
+# USES API VIEW on menus
+
+class MenuIList(APIView):
+    def get(self, request):
+        cat_model = MenuItem.objects.all()
+        cat_serializer = MenuItemModelSerializer(cat_model, many=True)
+        return Response(data=cat_serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        cat_serializer = MenuItemModelSerializerCreate(data=request.data)
+        if cat_serializer.is_valid():
+            cat_serializer.save()
+            return Response(cat_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        
+
 
 class CategouryList(APIView):
+    def get(self, request):
+        cat_model = Category.objects.all()
+        cat_serializer = CategorySerializer(cat_model, many=True)
+        return Response(data=cat_serializer.data, status=status.HTTP_200_OK)
+    
     @extend_schema(
                 parameters=[
-            OpenApiParameter(name='slug', description='Filter by artist', required=True, type=OpenApiTypes.STR),
-            OpenApiParameter(name='title', type=OpenApiTypes.INT, description='Filter by release year'),
+            OpenApiParameter(name='slug'    ),
+            OpenApiParameter(name='title'),
         ],
         responses={201: CategorySerializer}
     )
-    def get(self, request):
-        cat_model = Category.objects.all()
-        cat_serializer = CategorySerializer(cat_model)
-        return Response(cat_serializer.data, status=status.HTTP_200_OK)
-    
     def post(self, request):
-        cat_serializer = CategorySerializer(request.data)
+        cat_serializer = CategorySerializer(data=request.data)
         if cat_serializer.is_valid():
             cat_serializer.save()
             return Response(cat_serializer.data, status=status.HTTP_201_CREATED)
