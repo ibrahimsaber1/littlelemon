@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MenuItem
+from .models import MenuItem, Category
 from decimal import Decimal
 
 # 1- serializers
@@ -34,3 +34,9 @@ class MenuItemSerializer(serializers.ModelSerializer):
         
     def calculate_tax(self, product:MenuItem):
         return product.price * Decimal(1.1)
+    
+
+class CategorySerializer(serializers.Serializer):
+    class Meta:
+        model = Category
+        fields = '__all__'
