@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, renderer_classes
 from .models import MenuItem, Category
 from rest_framework import status
+from django.core.paginator import Paginator, EmptyPage
 # Create your views here.
 # The line `from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes` is
 # importing specific utilities from the `drf_spectacular` package.
@@ -29,6 +30,9 @@ def menu_items(request):
         to_price = request.query_params.get('to_price')
         search = request.query_params.get('search')
         ordering = request.query_params.get('ordering')
+        #pagination
+        perpage = request.query_params.get('perpage', default=2)
+        page = request.query_params.get('page', default=1)
         if category_name:
             items = items.filter(category__title=category_name)
         if to_price:
@@ -39,6 +43,13 @@ def menu_items(request):
             #NOTE: the above search is case sensitive if u want to make it case insensitive use i before startswith or contains for example >> title__istartswith or title__icontains
         if ordering:
             items= items.order_by(ordering)        
+            
+        paginator = Paginator(items, per_page=perpage)
+        try:
+            items = paginator.page(number=page)
+        except EmptyPage:
+            items = []
+            
         serialized_item = MenuItemModelSerializer(items, many=True)
         return Response(serialized_item.data)
     elif request.method=='POST':
